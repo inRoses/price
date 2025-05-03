@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Precificação</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      background-color: #1e1e1e;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+
+    .tab.active {
+      border-bottom: 2px solid #00ffcc;
+      background-color: #2a2a2a;
+    }
+
+    .content {
+      display: none;
+    }
+
+    .content.active {
+      display: flex;
+      gap: 20px;
+    }
+
+    .form-container {
+      flex: 2;
+    }
+
+    .note-container {
+      flex: 1;
+      background-color: #1a1a1a;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #cccccc;
+    }
+
+    h1 {
+      text-align: center;
+      color: #00ffcc;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border: none;
+      border-radius: 6px;
+      background: #222;
+      color: #fff;
+    }
+
+    .checkbox-group {
+      margin-top: 10px;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px;
+      background-color: #00ffcc;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .resultado {
+      margin-top: 20px;
+      background: #1e1e1e;
+      padding: 15px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Precificação Paiaô</h1>
+
+  <div class="tabs">
+    <div class="tab active" onclick="mostrarAba('custo')">🧮 Calculadora de Custo</div>
+    <div class="tab" onclick="mostrarAba('lucro')">💰 Calculadora de Lucro</div>
+  </div>
+
+  <!-- Aba: Calculadora de Custo -->
+  <div class="content active" id="custo">
+    <div class="form-container">
+      <label for="cotacao">Cotação atual (ex: 1.15)</label>
+      <input type="number" step="0.01" id="cotacao" value="1.15">
+
+      <label for="precoProduto">Preço do produto (¥)</label>
+      <input type="number" step="0.01" id="precoProduto">
+
+      <label for="frete">Frete total (¥)</label>
+      <input type="number" step="0.01" id="frete">
+
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="taxaFotos" checked> Incluir taxa de fotos (2¥)</label>
+        <label><input type="checkbox" id="taxaPlastico" checked> Incluir taxa de plástico bolha (4¥)</label>
+      </div>
+
+      <button onclick="calcular()">Calcular</button>
+
+      <div class="resultado" id="resultado" style="display:none;">
+        <p><strong>Total em Yuans (¥):</strong> <span id="totalYuan"></span></p>
+        <p><strong>Total em Reais (R$):</strong> <span id="totalReal"></span></p>
+      </div>
+    </div>
+
+    <div class="note-container" id="nota" style="display:none;">
+      <strong>Resumo do cálculo:</strong><br><br>
+      <span id="notaTexto"></span>
+    </div>
+  </div>
+
+  <!-- Aba: Calculadora de Lucro -->
+  <div class="content" id="lucro">
+    <div class="form-container">
+      <label for="custoReais">Preço de custo (R$)</label>
+      <input type="number" step="0.01" id="custoReais">
+
+      <label for="lucroDesejado">Lucro desejado (R$)</label>
+      <input type="number" step="0.01" id="lucroDesejado">
+
+      <button onclick="calcularLucro()">Calcular Preço de Venda</button>
+
+      <div class="resultado" id="resultadoLucro" style="display:none;">
+        <p><strong>Preço de venda sugerido:</strong> R$ <span id="precoVenda"></span></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function mostrarAba(id) {
+      const tabs = document.querySelectorAll('.tab');
+      const contents = document.querySelectorAll('.content');
+
+      tabs.forEach(tab => tab.classList.remove('active'));
+      contents.forEach(content => content.classList.remove('active'));
+
+      document.querySelector(`.tab[onclick="mostrarAba('${id}')"]`).classList.add('active');
+      document.getElementById(id).classList.add('active');
+    }
+
+    function calcular() {
+      const cotacao = parseFloat(document.getElementById("cotacao").value);
+      const precoProduto = parseFloat(document.getElementById("precoProduto").value);
+      const frete = parseFloat(document.getElementById("frete").value);
+      const incluiFotos = document.getElementById("taxaFotos").checked;
+      const incluiPlastico = document.getElementById("taxaPlastico").checked;
+
+      if (isNaN(cotacao) || isNaN(precoProduto) || isNaN(frete) || cotacao <= 0) {
+        alert("Por favor, preencha todos os campos corretamente.");
+        return;
+      }
+
+      const base = precoProduto + frete;
+      const taxa2 = base * 0.02;
+      const taxa3 = base * 0.03;
+      const taxaFotos = incluiFotos ? 2 : 0;
+      const taxaPlastico = incluiPlastico ? 4 : 0;
+
+      const totalYuan = base + taxa2 + taxa3 + taxaFotos + taxaPlastico;
+      const totalReal = totalYuan / cotacao;
+
+      document.getElementById("totalYuan").innerText = totalYuan.toFixed(2) + " ¥";
+      document.getElementById("totalReal").innerText = totalReal.toFixed(2);
+      document.getElementById("resultado").style.display = "block";
+
+      const explicacao = `
+        Produto: ¥${precoProduto.toFixed(2)}<br>
+        Frete: ¥${frete.toFixed(2)}<br>
+        Taxa 2%: ¥${taxa2.toFixed(2)}<br>
+        Seguro 3%: ¥${taxa3.toFixed(2)}<br>
+        ${incluiFotos ? "Fotos: ¥2<br>" : ""}
+        ${incluiPlastico ? "Plástico bolha: ¥4<br>" : ""}
+        <br><strong>Total final:</strong> ¥${totalYuan.toFixed(2)}<br>
+        Convertido por cotação ¥1 = R$${cotacao.toFixed(2)} ➜ <strong>R$${totalReal.toFixed(2)}</strong>
+      `;
+      document.getElementById("notaTexto").innerHTML = explicacao;
+      document.getElementById("nota").style.display = "block";
+    }
+
+    function calcularLucro() {
+      const custo = parseFloat(document.getElementById("custoReais").value);
+      const lucro = parseFloat(document.getElementById("lucroDesejado").value);
+
+      if (isNaN(custo) || isNaN(lucro)) {
+        alert("Preencha os dois campos corretamente.");
+        return;
+      }
+
+      const venda = custo + lucro;
+      document.getElementById("precoVenda").innerText = venda.toFixed(2);
+      document.getElementById("resultadoLucro").style.display = "block";
+    }
+  </script>
+
+</body>
+</html>
